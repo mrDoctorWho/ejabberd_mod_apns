@@ -2,7 +2,9 @@ mod_apns
 ====
 An ejabberd module to send offline messages as PUSH notifications for iOS.
 
-This module **has nothing to do** with [XEP-0357](http://xmpp.org/extensions/xep-0357.html) so far. But it might in the future.
+> Consider using [mod_push](https://github.com/royneary/mod_push) which implements [XEP-0357](http://xmpp.org/extensions/xep-0357.html) and works with many PUSH services.
+
+This module **has nothing to do** with [XEP-0357](http://xmpp.org/extensions/xep-0357.html) so far.
 
 The main goal of this module is to send all offline messages to the registered (see [Usage](#Usage)) clients via APNS.
 
