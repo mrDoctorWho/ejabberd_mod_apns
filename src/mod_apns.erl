@@ -15,30 +15,20 @@
 
 -define(NS_APNS, "https://apple.com/push"). %% I hope Apple doesn't mind.
 
--export([start/2, stop/1, message/3, iq/3]).
+-export([start/2, stop/1, message/3, iq/3, mod_opt_type/1]).
 
- 
-% conversion
-% done by bravenewmethod.com
-hexstr_to_bin(S) ->
-	hexstr_to_bin(S, []).
-hexstr_to_bin([], Acc) ->
-	list_to_binary(lists:reverse(Acc));
-hexstr_to_bin([X,Y|T], Acc) ->
-	{ok, [V], []} = io_lib:fread("~16u", [X,Y]),
-	hexstr_to_bin(T, [V | Acc]).
-
+-define(Timeout, 10000).
 
 % partially done by uwe-arzt.de
 send_payload(Host, Payload, Token) ->
-	crypto:start(),
-	ssl:start(),
-	Timeout = 10000,
-	Address = gen_mod:get_module_opt(Host, ?MODULE, address, fun(V) -> V end, undefined),
+	Address = gen_mod:get_module_opt(Host, ?MODULE, address, fun(V) -> binary_to_list(V) end, undefined),
 	Port = gen_mod:get_module_opt(Host, ?MODULE, port, fun(V) -> V end, undefined),
-	Cert = gen_mod:get_module_opt(Host, ?MODULE, certfile, fun(V) -> V end, undefined),
-	Keyfile = gen_mod:get_module_opt(Host, ?MODULE, keyfile, fun(V) -> V end, undefined),
-	Password = gen_mod:get_module_opt(Host, ?MODULE, password, fun(V) -> V end, undefined),
+	Cert = gen_mod:get_module_opt(Host, ?MODULE, certfile, fun(V) -> binary_to_list(V) end, undefined),
+	Keyfile = gen_mod:get_module_opt(Host, ?MODULE, keyfile, fun(V) -> binary_to_list(V) end, undefined),
+	Password = gen_mod:get_module_opt(Host, ?MODULE, password, fun(V) -> binary_to_list(V) end, undefined),
+
+	?DEBUG("mod_apns: trying to send payload with these parameters: Address: ~s Port: ~s Cert: ~s Keyfile: ~s Password ~s",
+		[Address, Port, Cert, Keyfile, Password]),
 
 	case Keyfile of
 		undefined ->
@@ -47,21 +37,25 @@ send_payload(Host, Payload, Token) ->
 			Options = [{certfile, Cert}, {keyfile, Keyfile}, {mode, binary}]
 	end,
 
-	case ssl:connect(Address, Port, Options, Timeout) of
+	case ssl:connect(Address, Port, Options, ?Timeout) of
 		{ok, Socket} ->
-			Payload = list_to_binary(Payload),
-			PayloadLength = size(Payload),
+			PayloadBin = list_to_binary(Payload),
+			PayloadLength = size(PayloadBin),
+			TokenNum = erlang:binary_to_integer(Token, 16),
+			TokenBin = <<TokenNum:32/integer-unit:8>>,
 			Packet = <<
 				0:8,
 				32:16/big,
-				Token/binary,
+				TokenBin/binary,
 				PayloadLength:16/big,
-				Payload/binary
+				PayloadBin/binary
 			>>,
 			ssl:send(Socket, Packet),
 			ssl:close(Socket),
+			?DEBUG("mod_apns: Successfully sent payload to the APNS server", []),
 			ok;
 		{error, Reason} ->
+			?ERROR_MSG("mod_apns: Unable to connect to the APNS server: ~p", [Reason]),
 			Reason
 	end.
 
@@ -82,7 +76,7 @@ add_quotes(String) ->
 
 message(From, To, Packet) ->
 	Type = xml:get_tag_attr_s(<<"type">>, Packet),
-	?DEBUG("Offline message ~s", [From]),
+	?DEBUG("Offline message", []),
 	case Type of 
 		"normal" -> ok;
 		_ ->
@@ -121,11 +115,11 @@ message(From, To, Packet) ->
 	end.
 
 
-iq(#jid{user = User, server = Server} = From, To, #iq{type = Type, sub_el = SubEl} = IQ) ->
+iq(#jid{user = User, server = Server}, _, #iq{sub_el = SubEl} = IQ) ->
 	LUser = jlib:nodeprep(User),
 	LServer = jlib:nameprep(Server),
 
-	{MegaSecs, Secs, _MicroSecs} = now(),
+	{MegaSecs, Secs, _MicroSecs} = erlang:timestamp(),
 	TimeStamp = MegaSecs * 1000000 + Secs,
 
 	Token = xml:get_tag_cdata(xml:get_subtag(SubEl, <<"token">>)),
@@ -151,11 +145,23 @@ iq(#jid{user = User, server = Server} = From, To, #iq{type = Type, sub_el = SubE
 	IQ#iq{type=result, sub_el=[]}. %% We don't need the result, but the handler has to send something.
 
 
-start(Host, Opts) -> 
+start(Host, _) -> 
+	crypto:start(),
+	ssl:start(),
 	mnesia:create_table(apns_users, [{disc_copies, [node()]}, {attributes, record_info(fields, apns_users)}]),
 	gen_iq_handler:add_iq_handler(ejabberd_local, Host, <<?NS_APNS>>, ?MODULE, iq, no_queue),
 	ejabberd_hooks:add(offline_message_hook, Host, ?MODULE, message, 49),
 	?INFO_MSG("mod_apns Has started successfully!", []),
 	ok.
 
-stop(Host) -> ok.
+stop(_) -> ok.
+
+
+mod_opt_type(address) -> fun iolist_to_binary/1; %binary_to_list?
+mod_opt_type(port) -> fun(I) when is_integer(I) -> I end;
+mod_opt_type(certfile) -> fun iolist_to_binary/1;
+mod_opt_type(keyfile) -> fun iolist_to_binary/1;
+mod_opt_type(password) -> fun iolist_to_binary/1;
+mod_opt_type(_) ->
+    [address, port, certfile, keyfile, password].
+
