@@ -30,11 +30,11 @@ send_payload(Host, Payload, Token) ->
 	?DEBUG("mod_apns: trying to send payload with these parameters: Address: ~s Port: ~s Cert: ~s Keyfile: ~s Password ~s",
 		[Address, Port, Cert, Keyfile, Password]),
 
-	case Keyfile of
+	case Password of
 		undefined ->
-			Options = [{certfile, Cert}, {password, Password}, {mode, binary}]; %, {verify, verify_none}
+			Options = [{certfile, Cert}, {keyfile, Keyfile}, {mode, binary}]; %, {verify, verify_none}
 		_ ->
-			Options = [{certfile, Cert}, {keyfile, Keyfile}, {mode, binary}]
+			Options = [{certfile, Cert}, {keyfile, Keyfile}, {password, Password}, {mode, binary}]
 	end,
 
 	case ssl:connect(Address, Port, Options, ?Timeout) of
