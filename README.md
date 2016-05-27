@@ -56,7 +56,7 @@ The key will be kept in mnesia database and completely belongs to the JabberID w
 
 **Compatibility**:
 
-Module should be working fine with Ejabberd 14 and 15.
+Module work fine with Ejabberd 14 and 15.
 
 There is at least one known [issue](https://github.com/mrDoctorWho/ejabberd_mod_gcm/issues/6) with Ejabberd 16 which can be solved by changing all calls to the **xml** module by calls to **fxml**. There is no support for both versions so far.
 
