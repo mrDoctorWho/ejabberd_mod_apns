@@ -1,4 +1,4 @@
-%% Google Cloud Messaging for Ejabberd
+%% Ejabberd module for the Apple Push Notification Service
 %% Created: 07/09/2015 by mrDoctorWho
 %% License: MIT/X11
 
