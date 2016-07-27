@@ -56,19 +56,6 @@ The key will be kept in mnesia database and completely belongs to the JabberID w
 
 **Compatibility**:
 
-Module work fine with Ejabberd 14 and 15.
+The module works fine with Ejabberd 14 and 15. 
 
-There is at least one known [issue](https://github.com/mrDoctorWho/ejabberd_mod_gcm/issues/6) with Ejabberd 16 which can be solved by changing all calls to the **xml** module by calls to **fxml**. There is no support for both versions so far.
-
-Literally, you need to change this:
-
-```erlang
-Type = xml:get_tag_attr_s(<<"type">>, Packet),
-```
-To this:
-
-```erlang
-Type = fxml:get_tag_attr_s(<<"type">>, Packet),
-```
-
-And a few other matches.
+**Warning: For the further versions you must use the master branch.**
