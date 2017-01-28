@@ -119,7 +119,13 @@ iq(#jid{user = User, server = Server}, _, #iq{sub_el = SubEl} = IQ) ->
 	LUser = jlib:nodeprep(User),
 	LServer = jlib:nameprep(Server),
 
-	{MegaSecs, Secs, _MicroSecs} = erlang:timestamp(),
+	{MegaSecs, Secs, _MicroSecs} =
+    	try
+	    	erlang:timestamp()
+    	catch
+	    	error:undef ->
+	      		erlang:now()
+    	end,
 	TimeStamp = MegaSecs * 1000000 + Secs,
 
 	Token = fxml:get_tag_cdata(fxml:get_subtag(SubEl, <<"token">>)),
