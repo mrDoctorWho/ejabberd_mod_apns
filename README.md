@@ -11,6 +11,8 @@ This module **has nothing to do** with [XEP-0357](http://xmpp.org/extensions/xep
 
 The main goal of this module is to send all offline messages to the registered (see [Usage](#Usage)) clients via APNS.
 
+[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=Y6TWGNS5GBQ84&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+
 **Compilation**:
 
 Because of the dependencies such as xml.hrl, logger.hrl, etc it's recommended to compile the module with ejabberd itself: put it in the *ejabberd/src* directory and run the default compiler.
@@ -56,4 +58,6 @@ The key will be kept in mnesia database and completely belongs to the JabberID w
 
 **Compatibility**:
 
-The module works fine with Ejabberd 16 and maybe the further versions. For the older ones, checkout the *ejabberd14* branch.
+The module works fine with Ejabberd 16 up to 16.09.
+
+For the older ones, checkout the *ejabberd14* branch.
