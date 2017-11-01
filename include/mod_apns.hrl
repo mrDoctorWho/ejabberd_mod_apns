@@ -1,0 +1,2 @@
+-record(apns_register, {token :: binary()}).
+-type apns_register() :: #apns_register{}.
