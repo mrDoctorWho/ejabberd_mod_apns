@@ -41,7 +41,7 @@ You need to send this stanza to the server over the XMPP connection, to let the 
 </iq>
 ```
 
-The key will be kept in mnesia database and completely belongs to the JabberID which it was sent from.
+The key will be kept in mnesia database and completely belong to the JabberID which it was sent from.
 
 **What it sends to APNS**:
 ```json
@@ -58,6 +58,6 @@ The key will be kept in mnesia database and completely belongs to the JabberID w
 
 **Compatibility**:
 
-The module works fine with Ejabberd 16 up to 16.09.
+The module works fine with recent ejabberd versions.
 
-For the older ones, checkout the *ejabberd14* branch.
+For the older ones, checkout the *ejabberd14* and *ejabberd16* branches.
